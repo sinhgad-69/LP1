@@ -1,38 +1,60 @@
-import java.io.*;
+import java.util.Scanner;
 
-class Ass5_FIFO {
-    public static void main(String args[]) throws IOException {
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+class FIFOPageReplacement {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
         
-        System.out.println("Enter the number of FRAMES: ");
-        int f = Integer.parseInt(br.readLine()), fifo[] = new int[f];
+        // Get the number of frames from the user
+        System.out.print("Enter the number of frames: ");
+        int frameCount = sc.nextInt();
+        int[] frames = new int[frameCount]; // Array to store frames
         
-        System.out.println("Enter the number of INPUTS: ");
-        int n = Integer.parseInt(br.readLine()), inp[] = new int[n];
+        // Initialize frames with -1 to indicate empty slots
+        for (int i = 0; i < frameCount; i++) {
+            frames[i] = -1;
+        }
         
-        System.out.println("Enter INPUT: ");
-        for (int i = 0; i < n; i++) inp[i] = Integer.parseInt(br.readLine());
+        // Get the number of pages from the user
+        System.out.print("Enter the number of pages: ");
+        int pageCount = sc.nextInt();
+        int[] pages = new int[pageCount];
+        
+        // Get each page number
+        System.out.println("Enter the page numbers: ");
+        for (int i = 0; i < pageCount; i++) {
+            pages[i] = sc.nextInt();
+        }
 
-        for (int i = 0; i < f; i++) fifo[i] = -1;
-        
-        int Hit = 0, Fault = 0, j = 0;
+        int hits = 0;       // Counts page hits
+        int faults = 0;     // Counts page faults
+        int pointer = 0;    // Points to the next frame to replace (FIFO order)
 
-        for (int i = 0; i < n; i++) {
-            boolean check = false;
-            for (int k = 0; k < f; k++) 
-                if (fifo[k] == inp[i]) {
-                    check = true;
-                    Hit++;
+        // Process each page
+        for (int page : pages) {
+            boolean hit = false;
+
+            // Check if the page is already in one of the frames
+            for (int frame : frames) {
+                if (frame == page) {
+                    hit = true;
+                    hits++; // Page hit found
                     break;
                 }
+            }
 
-            if (!check) {
-                fifo[j] = inp[i];
-                if (++j >= f) j = 0;
-                Fault++;
+            // If the page is not in the frames, replace the oldest one (FIFO)
+            if (!hit) {
+                frames[pointer] = page;       // Replace frame at the pointer
+                pointer = (pointer + 1) % frameCount; // Move pointer in a circular way
+                faults++;
             }
         }
 
-        System.out.println("HIT: " + Hit + " FAULT: " + Fault + " HIT RATIO: " + (float) Hit / n);
+        // Print results
+        System.out.println("Total Hits: " + hits);
+        System.out.println("Total Faults: " + faults);
+        System.out.println("Hit Ratio: " + (float) hits / pageCount);
+
+        sc.close(); // Close the Scanner to release resources
     }
 }
