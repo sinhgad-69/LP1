@@ -1,81 +1,49 @@
 import java.util.*;
-import java.io.*;
 
-public class Ass5_Optimal {
-    public static void main(String args[]) throws IOException {
+public class Ass5{
+    public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
         
-        System.out.println("Enter number of Frames: ");
-        int numberOfFrames = sc.nextInt();
-        int frame[] = new int[numberOfFrames];
-        Arrays.fill(frame, -1);  // Initialize frame array with -1
+        // Input for frames and pages
+        System.out.print("Enter the number of frames: ");
+        int numFrames = sc.nextInt();
+        int[] frames = new int[numFrames];
+        Arrays.fill(frames, -1);
 
-        System.out.println("Enter number of Pages: ");
-        int numberOfPages = sc.nextInt();
-        int pages[] = new int[numberOfPages];
+        System.out.print("Enter the number of pages: ");
+        int numPages = sc.nextInt();
+        int[] pages = new int[numPages];
         
-        System.out.println("Enter the pages: ");
-        for (int i = 0; i < numberOfPages; i++) pages[i] = sc.nextInt();
+        System.out.println("Enter the page numbers: ");
+        for (int i = 0; i < numPages; i++) pages[i] = sc.nextInt();
 
-        int faults = 0, hit = 0, pos = 0;
-        for (int i = 0; i < numberOfPages; i++) {
-            boolean hitFlag = false;
+        int faults = 0, hits = 0;
 
-            // Check if the page is already in one of the frames
-            for (int j : frame) {
-                if (j == pages[i]) {
-                    hit++;
-                    hitFlag = true;
-                    break;
+        for (int i = 0; i < numPages; i++) {
+            int currentPage = pages[i];
+            boolean hit = false;
+
+            // Check for page hit
+            for (int frame : frames) if (frame == currentPage) { hit = true; hits++; break; }
+
+            // Page fault handling
+            if (!hit) {
+                int frameToReplace = -1, farthest = i;
+
+                // Find an empty frame or choose the frame with farthest next use
+                for (int j = 0; j < numFrames; j++) {
+                    if (frames[j] == -1) { frameToReplace = j; break; }
+                    int nextUse = numPages;
+                    for (int k = i + 1; k < numPages; k++) if (pages[k] == frames[j]) { nextUse = k; break; }
+                    if (nextUse > farthest) { farthest = nextUse; frameToReplace = j; }
                 }
-            }
-
-            if (!hitFlag) {
-                boolean emptyFrameFound = false;
-                // Place page in the first empty frame (if any)
-                for (int j = 0; j < numberOfFrames; j++) {
-                    if (frame[j] == -1) {
-                        frame[j] = pages[i];
-                        faults++;
-                        emptyFrameFound = true;
-                        break;
-                    }
-                }
-
-                if (!emptyFrameFound) {
-                    int temp[] = new int[numberOfFrames];
-                    Arrays.fill(temp, -1);
-
-                    // Check future positions of frames
-                    for (int j = 0; j < numberOfFrames; j++) {
-                        for (int k = i + 1; k < numberOfPages; k++) {
-                            if (frame[j] == pages[k]) {
-                                temp[j] = k;
-                                break;
-                            }
-                        }
-                    }
-
-                    // Find the frame that won't be used soonest
-                    int max = -1;
-                    for (int j = 0; j < numberOfFrames; j++) {
-                        if (temp[j] == -1) {
-                            pos = j;
-                            break;
-                        } else if (temp[j] > max) {
-                            max = temp[j];
-                            pos = j;
-                        }
-                    }
-
-                    frame[pos] = pages[i];
-                    faults++;
-                }
+                
+                frames[frameToReplace] = currentPage; // Replace page
+                faults++;
             }
         }
 
-        System.out.println("\n\nTotal Page Faults: " + faults);
-        System.out.println("Total Page Hits: " + hit);
+        System.out.println("\nTotal Page Faults: " + faults + "\nTotal Page Hits: " + hits);
         sc.close();
     }
 }
